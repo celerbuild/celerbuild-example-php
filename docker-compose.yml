@@ -1,18 +1,16 @@
-version: '3'
+version: '3.8'
+
 services:
   app:
     image: ${REGISTRY_URL}/celerbuild-example-php:${IMAGE_TAG}
     container_name: celerbuild-example-php
     restart: unless-stopped
-    ports:
-      - "8081:8081"
-    volumes:
-      - .:/var/www/celerbuild-example-php
     env_file:
       - .env.docker
     networks:
-      - celerbuild
+      - celerbuild_network
 
 networks:
-  celerbuild:
+  celerbuild_network:
+    name: celerbuild_network
     driver: bridge
