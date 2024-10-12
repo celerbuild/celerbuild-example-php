@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    image: ${REGISTRY_URL}/celerbuild-example-php:${IMAGE_TAG}
+    image: ${REGISTRY_URL}/library/celerbuild-example-php:${DEPLOY_ENV}
     container_name: celerbuild-example-php
     restart: unless-stopped
     env_file:
