@@ -33,8 +33,11 @@ RUN composer install --no-dev --optimize-autoloader
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/default.conf /etc/nginx/conf.d/default.conf
 
-# Ensure correct file permissions
-RUN chown -R www-data:www-data /var/www/celerbuild-example-php
+# Create necessary directories and set permissions
+RUN mkdir -p var/cache var/log \
+    && chown -R www-data:www-data . \
+    && chmod -R 755 . \
+    && chmod -R 775 var
 
 # Expose port 8081
 EXPOSE 8081
