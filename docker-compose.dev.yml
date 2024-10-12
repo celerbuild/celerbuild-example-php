@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  app:
+    image: ${REGISTRY_URL}/library/celerbuild-example-php:${IMAGE_TAG}
+    environment:
+      - APP_ENV=dev
+      - APP_DEBUG=1
+    volumes:
+      - ./var:/var/www/celerbuild-example-php/var
+    ports:
+      - "8081:8081"
