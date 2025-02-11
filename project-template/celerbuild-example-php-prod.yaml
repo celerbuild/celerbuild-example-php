@@ -1,0 +1,64 @@
+name: celerbuild-example-php-prod
+env: prod
+space: default
+repoPath: git@github.com:celerbuild/celerbuild-example-php.git
+targetDeployPath: /home/ubuntu/apps/php
+targetDeployWarehousePath: /home/ubuntu/repos/php
+targetWarehouseVersionKeep: 3
+serverClusterID: 34
+deployMode: tag
+deployUser: ubuntu
+buildCmds: |-
+  # Install only production dependencies
+  composer install --no-dev --optimize-autoloader
+
+  # Clear and warm up the cache for the prod environment
+  php bin/console cache:clear --env=prod
+  php bin/console cache:warmup --env=prod
+
+  tar -zcvf ${LOCAL_PACKAGE_FILE} .env.dist *
+preDeploymentCmds: ''
+postDeploymentCmds: |-
+  #!/bin/bash
+
+  # Define project directories
+  SOURCE_DIR="${TARGET_DEPLOYMENT_PATH}/${TARGET_DEPLOYMENT_PROJECT_NAME}"
+  DEST_DIR="/home/ubuntu/celerbuild-example-php"
+
+  # Check if the destination directory exists
+  if [ ! -d "$DEST_DIR" ]; then
+      sudo mkdir -p "$DEST_DIR"
+      echo "Directory $DEST_DIR created."
+  else
+      echo "Directory $DEST_DIR already exists."
+  fi
+
+  # Temporarily set permissions for the destination directory
+  sudo chown -R ubuntu:ubuntu "$DEST_DIR"
+  sudo chmod -R 755 "$DEST_DIR"
+
+  # Copy contents to the destination directory
+  cp -r "$SOURCE_DIR"/. "$DEST_DIR"
+  echo "Files copied from $SOURCE_DIR to $DEST_DIR."
+
+
+  # Check if .env file exists, if not, create it from .env.dist
+  if [ ! -f "$DEST_DIR/.env" ]; then
+      cp "$DEST_DIR/.env.dist" "$DEST_DIR/.env"
+      echo ".env file created from .env.dist."
+  fi
+
+  # Set permissions for the .env file
+  sudo chown www-data:www-data "$DEST_DIR/.env"
+  sudo chmod 644 "$DEST_DIR/.env"
+
+  # Set final permissions for the destination directory
+  sudo chown -R www-data:www-data "$DEST_DIR"
+  sudo chmod -R 755 "$DEST_DIR"
+
+  # Restart Nginx and PHP-FPM
+  sudo systemctl restart nginx
+  sudo systemctl restart php8.1-fpm
+  echo "Nginx and PHP-FPM restarted."
+numberOfLatestTags: 3
+specifyBranches: ''
