@@ -16,7 +16,7 @@ buildCmds: |-
   php bin/console cache:clear --env=dev
   php bin/console cache:warmup --env=dev
 
-  tar -zcvf ${LOCAL_PACKAGE_FILE} .env.dist *
+  tar --no-xattrs --no-mac-metadata -zcvf ${LOCAL_PACKAGE_FILE} .env.dist *
 preDeploymentCmds: ''
 postDeploymentCmds: |-
   #!/bin/bash
