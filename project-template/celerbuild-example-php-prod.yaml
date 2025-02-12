@@ -1,6 +1,5 @@
 name: celerbuild-example-php-prod
 env: prod
-space: default
 repoPath: git@github.com:celerbuild/celerbuild-example-php.git
 targetDeployPath: /home/ubuntu/apps/php
 targetDeployWarehousePath: /home/ubuntu/repos/php
@@ -8,15 +7,7 @@ targetWarehouseVersionKeep: 3
 serverClusterID: 34
 deployMode: tag
 deployUser: ubuntu
-buildCmds: |-
-  # Install only production dependencies
-  composer install --no-dev --optimize-autoloader
-
-  # Clear and warm up the cache for the prod environment
-  php bin/console cache:clear --env=prod
-  php bin/console cache:warmup --env=prod
-
-  tar --no-xattrs --no-mac-metadata -zcvf ${LOCAL_PACKAGE_FILE} .env.dist *
+buildCmds: tar --no-xattrs --no-mac-metadata -zcvf ${LOCAL_PACKAGE_FILE} .env.dist *
 preDeploymentCmds: ''
 postDeploymentCmds: |-
   #!/bin/bash
@@ -47,6 +38,15 @@ postDeploymentCmds: |-
       cp "$DEST_DIR/.env.dist" "$DEST_DIR/.env"
       echo ".env file created from .env.dist."
   fi
+
+  cd "$DEST_DIR"
+
+  # Install only production dependencies
+  composer install --no-dev --optimize-autoloader
+
+  # Clear and warm up the cache for the prod environment
+  php bin/console cache:clear --env=prod
+  php bin/console cache:warmup --env=prod
 
   # Set permissions for the .env file
   sudo chown www-data:www-data "$DEST_DIR/.env"
