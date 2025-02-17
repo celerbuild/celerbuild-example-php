@@ -13,8 +13,9 @@ postDeploymentCmds: |-
   #!/bin/bash
 
   # Define project directories
+  DEPLOY_USER="${DEPLOY_USER}"  # Deployment user (e.g., ubuntu, ec2-user, etc.)
   SOURCE_DIR="${TARGET_DEPLOYMENT_PATH}/${TARGET_DEPLOYMENT_PROJECT_NAME}"
-  DEST_DIR="/home/ubuntu/celerbuild-example-php"
+  DEST_DIR="/home/${DEPLOY_USER}/celerbuild-example-php"
 
   # Check if the destination directory exists
   if [ ! -d "$DEST_DIR" ]; then
@@ -25,26 +26,19 @@ postDeploymentCmds: |-
   fi
 
   # Temporarily set permissions for the destination directory
-  sudo chown -R ubuntu:ubuntu "$DEST_DIR"
+  sudo chown -R ${DEPLOY_USER}:${DEPLOY_USER} "$DEST_DIR"
   sudo chmod -R 755 "$DEST_DIR"
 
   # Copy contents to the destination directory
   cp -r "$SOURCE_DIR"/. "$DEST_DIR"
   echo "Files copied from $SOURCE_DIR to $DEST_DIR."
 
+
   # Check if .env file exists, if not, create it from .env.dist
   if [ ! -f "$DEST_DIR/.env" ]; then
       cp "$DEST_DIR/.env.dist" "$DEST_DIR/.env"
       echo ".env file created from .env.dist."
   fi
-
-  # Change to project directory and install dependencies
-  cd "$DEST_DIR"
-  composer install
-
-  # Clear and warm up the cache for the dev environment
-  php bin/console cache:clear --env=dev
-  php bin/console cache:warmup --env=dev
 
   # Set permissions for the .env file
   sudo chown www-data:www-data "$DEST_DIR/.env"
@@ -53,6 +47,13 @@ postDeploymentCmds: |-
   # Set final permissions for the destination directory
   sudo chown -R www-data:www-data "$DEST_DIR"
   sudo chmod -R 755 "$DEST_DIR"
+
+  # Install all dependencies including dev dependencies
+  composer install
+
+  # Clear and warm up the cache for the dev environment
+  php bin/console cache:clear --env=dev
+  php bin/console cache:warmup --env=dev
 
   # Restart Nginx and PHP-FPM
   sudo systemctl restart nginx
