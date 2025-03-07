@@ -1,14 +1,53 @@
 name: celerbuild-example-php-prod
 env: prod
-repoPath: git@github.com:celerbuild/celerbuild-example-php.git
+# Repository URL supports two formats:
+# 1. HTTPS format (recommended for public repositories): https://github.com/celerbuild/celerbuild-example-php.git
+# 2. SSH format (requires SSH key configuration): git@github.com:celerbuild/celerbuild-example-php.git
+repoPath: https://github.com/celerbuild/celerbuild-example-php.git
+
+# Specify the server path for project deployment
 targetDeployPath: /home/ubuntu/apps/php
+
+# Specify the warehouse path on target server for storing deployment packages
 targetDeployWarehousePath: /home/ubuntu/repos/php
+
+# Number of versions to keep in the warehouse repository
 targetWarehouseVersionKeep: 3
+
+# serverClusterID: Please select an actual existing server cluster after importing the template
+# The ID will be different in your environment
 serverClusterID: 34
+
+# deployMode: Supports two modes
+# - branch: for development environment
+# - tag: for production environment
 deployMode: tag
+
+# Specify the actual user account on the target deployment server
 deployUser: ubuntu
-buildCmds: tar --no-xattrs --no-mac-metadata -zcvf ${LOCAL_PACKAGE_FILE} .env.dist *
+
+# buildCmds: Commands executed during the build phase
+# These commands are executed on the build server to create deployment packages
+buildCmds:  |-
+  # Check the operating system type
+  OS=$(uname)
+
+  # Create package based on OS type
+  if [ "$OS" = "Darwin" ]; then
+  # For macOS, include mac-specific options
+  tar --no-xattrs --no-mac-metadata -zcvf ${LOCAL_PACKAGE_FILE} .env.dist *
+  else
+  # For Linux and other systems, use standard options
+  tar --no-xattrs -zcvf ${LOCAL_PACKAGE_FILE} .env.dist *
+  fi
+
+# preDeploymentCmds: Commands executed before deployment
+# These commands run on target servers before the new version is deployed
 preDeploymentCmds: ''
+
+# postDeploymentCmds: Commands executed after deployment
+# These commands run on target servers after the new version is deployed
+# Typically used for service restart, permission updates, and deployment verification
 postDeploymentCmds: |-
   #!/bin/bash
 
@@ -59,5 +98,6 @@ postDeploymentCmds: |-
   sudo systemctl restart nginx
   sudo systemctl restart php8.1-fpm
   echo "Nginx and PHP-FPM restarted."
+
+# Number of latest tags to show in the deployment dropdown list for production environment
 numberOfLatestTags: 3
-specifyBranches: ''
